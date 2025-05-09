@@ -1,0 +1,32 @@
+#include <Wire.h>               // Biblioteca para comunicação I2C
+#include <SoftwareSerial.h>      // Biblioteca para comunicação serial com o módulo Bluetooth
+
+SoftwareSerial bluetooth(9, 8);  // Configura os pinos 9 e 8 para comunicação RX e TX do Bluetooth
+
+void setup() {
+  Wire.begin();                  // Inicializa este Arduino como mestre no barramento I2C
+  Serial.begin(9600);            // Inicializa a comunicação serial para depuração
+  bluetooth.begin(9600);         // Inicializa a comunicação Bluetooth com baud rate de 9600
+}
+
+void loop() {
+  Wire.requestFrom(8, 16);       // Solicita até 16 bytes do Arduino escravo com endereço I2C 8
+  String cor = "";               // Inicializa uma string para armazenar a cor recebida
+
+  // Lê os dados enviados pelo escravo até o caractere de nova linha ('\n') ou até atingir 16 bytes
+  while (Wire.available()) {
+    char c = Wire.read();        // Lê um caractere da comunicação I2C
+    if (c == '\n') break;        // Interrompe a leitura ao encontrar o caractere de nova linha
+    cor += c;                    // Adiciona o caractere lido à string 'cor'
+  }
+
+  // Se uma cor foi recebida, exibe no Serial Monitor e envia via Bluetooth
+  if (cor.length() > 0) {        // Verifica se a string 'cor' possui dados
+    Serial.print("Cor recebida: ");
+    Serial.println(cor);         // Exibe a cor recebida no Serial Monitor para depuração
+    bluetooth.println(cor);      // Envia a cor recebida para o aplicativo via Bluetooth
+    Serial.println("Enviado via Bluetooth: " + cor); // Exibe confirmação no Serial Monitor
+  }
+
+  delay(1000);                   // Intervalo de 1 segundo para a próxima solicitação ao escravo
+}
